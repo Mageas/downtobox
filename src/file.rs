@@ -2,7 +2,7 @@ use regex::Regex;
 use rs_uptobox::{GetDownloadUrl, GetDownloadUrlResponse, Uptobox};
 use std::{fs::DirBuilder, path::Path};
 
-use crate::{eyre, Context, Result};
+use crate::{eyre, Result};
 
 pub struct File {
     pub name: String,
@@ -31,7 +31,7 @@ impl File {
         let url = uptobox
             .get_download_url(GetDownloadUrl::new(file_code))
             .await
-            .context(eyre!("Cannot retrieve the download link for '{url}'"))?;
+            .map_err(|e| eyre!("Unable to fetch the download link for '{url}' ({e})"))?;
         let url = match url {
             GetDownloadUrlResponse::Link(url) => url.dl_link,
             GetDownloadUrlResponse::Wait(_) => {
@@ -56,9 +56,9 @@ impl File {
         )?;
         Ok(regex
             .captures(url)
-            .ok_or_else(|| eyre!("Unable to parse the file code from '{url}'"))?
+            .ok_or_else(|| eyre!("Unable to parse the file code for '{url}' (regex: https://(?:uptobox|uptostream).[a-zA-Z]+/(?P<file_code>[a-zA-Z0-9]{{12}}) )"))?
             .name("file_code")
-            .ok_or_else(|| eyre!("Unable to parse the file code from '{url}'"))?
+            .ok_or_else(|| eyre!("Unable to parse the file code for '{url}' (regex: https://(?:uptobox|uptostream).[a-zA-Z]+/(?P<file_code>[a-zA-Z0-9]{{12}}) )"))?
             .as_str()
             .to_string())
     }
@@ -72,7 +72,7 @@ impl File {
         }
 
         if !path.is_dir() {
-            return Err(eyre!("The path '{display}' is not a directory"));
+            return Err(eyre!("The local path '{display}' is not a directory"));
         }
 
         if display.ends_with('/') {

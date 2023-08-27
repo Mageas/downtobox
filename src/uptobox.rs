@@ -2,7 +2,7 @@ use chrono::DateTime;
 use rs_uptobox::{GetFiles, GetFilesFiles, GetFilesResponse, Uptobox as UptoboxApi};
 use std::cmp::Ordering;
 
-use crate::{eyre, Context, Result};
+use crate::{eyre, Result};
 
 pub struct Uptobox {}
 
@@ -12,7 +12,7 @@ impl Uptobox {
         uptobox
             .get_files(&GetFiles::new("//"))
             .await
-            .context(eyre!("Unable to fetch files from Uptobox"))
+            .map_err(|e| eyre!("Unable to fetch files from Uptobox ({e})"))
     }
 
     /// Get the uploaded file
@@ -33,7 +33,7 @@ impl Uptobox {
                     _ => Ordering::Equal,
                 }
             })
-            .ok_or_else(|| eyre!("Unable to find the uploaded file"))
+            .ok_or_else(|| eyre!("Unable to find the uploaded file on uptobox"))
     }
 
     /// Get destination directory
@@ -44,7 +44,7 @@ impl Uptobox {
         uptobox
             .get_files(&GetFiles::new(path))
             .await
-            .context(eyre!("Unable to fetch destination folder"))
+            .map_err(|e| eyre!("Unable to fetch destination folder on uptobox ({e})"))
     }
 
     /// Move files to destination
@@ -56,6 +56,8 @@ impl Uptobox {
         uptobox
             .move_files(vec![file_code], destination)
             .await
-            .context(eyre!("Unable to move uploaded file to destination folder"))
+            .map_err(|e| {
+                eyre!("Unable to move uploaded file to destination folder on uptobox ({e})")
+            })
     }
 }

@@ -7,7 +7,7 @@ use tokio_util::codec::{BytesCodec, FramedRead};
 
 use rs_uptobox::Uptobox;
 
-use crate::{eyre, Context, Result};
+use crate::{eyre, Result};
 
 pub struct Upload {}
 
@@ -24,7 +24,7 @@ impl Upload {
 
         let file: File = File::open(path)
             .await
-            .context(eyre!("Cannot access '{path}'"))?;
+            .map_err(|e| eyre!("Unable to open the file '{path}' ({e})"))?;
 
         let stream = FramedRead::new(file, BytesCodec::new());
         let body = Body::wrap_stream(stream);
@@ -40,12 +40,12 @@ impl Upload {
             .multipart(form)
             .send()
             .await
-            .context(eyre!("Unable to upload '{path}'"))?;
+            .map_err(|e| eyre!("Unable to upload the file '{path}' ({e})"))?;
 
         if res.status().is_success() {
             Ok(res)
         } else {
-            Err(eyre!("Unable to upload '{title}'"))
+            Err(eyre!("Unable to upload the file '{path}' (Unknown error)"))
         }
     }
 }

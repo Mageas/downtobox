@@ -2,7 +2,7 @@ use itertools::Itertools;
 use serde::{Deserialize, Deserializer};
 use std::fmt::{self};
 
-use crate::{command::Command, eyre, Context, Result};
+use crate::{command::Command, eyre, Result};
 
 #[derive(Debug)]
 pub struct Matroska {
@@ -14,7 +14,7 @@ impl Matroska {
     pub fn new(path: &str) -> Result<Self> {
         let output = Command::get_infos(path)?;
         let infos = serde_json::from_str::<MatroskaModelWrapper>(&output)
-            .context(eyre!("Cannot deserialize mkv infos for '{path}'"))?
+            .map_err(|e| eyre!("Unable to deserialize information for '{path}' ({e})"))?
             .tracks;
 
         // Collect audios and videos
@@ -32,7 +32,7 @@ impl Matroska {
             "{}",
             self.videos
                 .get(0)
-                .ok_or_else(|| eyre!("Cannot fetch mkv resolution"))?
+                .ok_or_else(|| eyre!("Unable to retreive matroska resolution"))?
                 .properties
                 .resolution
         ))
@@ -52,7 +52,7 @@ impl Matroska {
             .collect();
 
         match codecs.is_empty() {
-            true => Err(eyre!("Cannot detect audio codecs")),
+            true => Err(eyre!("Unable to retreive matroska audio codecs")),
             false => Ok(codecs.join(".")),
         }
     }
@@ -85,7 +85,7 @@ impl Matroska {
             .collect();
 
         match codecs.is_empty() {
-            true => Err(eyre!("Cannot detect video codecs")),
+            true => Err(eyre!("Unable to retreive matroska video codecs")),
             false => Ok(codecs.join(".")),
         }
     }

@@ -1,5 +1,5 @@
 use clap::Parser;
-use color_eyre::eyre::{eyre, Context, Report, Result};
+use color_eyre::eyre::{eyre, Report, Result};
 use reqwest::Client;
 use rs_uptobox::Uptobox as UptoboxApi;
 use std::path::Path;
@@ -27,8 +27,6 @@ enum UploadType {
     Show,
     Film,
 }
-
-// TODO: Better errors (when requesting uptobox, show uptobox error) | check if the file exist before
 
 #[tokio::main]
 async fn main() -> Result<(), Report> {

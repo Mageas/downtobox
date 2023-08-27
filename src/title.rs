@@ -82,9 +82,9 @@ impl Title {
         let regex = Regex::new(r#"(?:S|s)[0-9]{1,3}(?:E|e)[0-9]{1,3}|(?:E|e)[0-9]{1,3}"#)?;
         Ok(regex
             .captures(file_name)
-            .ok_or_else(|| eyre!("Unable to parse the episode from '{file_name}'"))?
+            .ok_or_else(|| eyre!("Unable to parse the episode from '{file_name}' (regex: (?:S|s)[0-9]{{1,3}}(?:E|e)[0-9]{{1,3}}|(?:E|e)[0-9]{{1,3}} )"))?
             .get(0)
-            .ok_or_else(|| eyre!("Unable to parse the episode from '{file_name}'"))?
+            .ok_or_else(|| eyre!("Unable to parse the episode from '{file_name}' (regex: (?:S|s)[0-9]{{1,3}}(?:E|e)[0-9]{{1,3}}|(?:E|e)[0-9]{{1,3}} )"))?
             .as_str()
             .to_string())
     }

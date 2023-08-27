@@ -1,7 +1,7 @@
 use rand::{distributions::Alphanumeric, Rng};
 use std::process::Command as Execute;
 
-use crate::{eyre, Context, Result};
+use crate::{eyre, Result};
 
 pub struct Command {}
 
@@ -10,7 +10,7 @@ impl Command {
     pub fn check() -> Result<()> {
         match Execute::new("mkvpropedit").arg("--version").output() {
             Ok(_) => Ok(()),
-            Err(_) => Err(eyre!("mkvpropedit is needed to use this program")),
+            Err(_) => Err(eyre!("This program requires mkvpropedit")),
         }
     }
 
@@ -35,12 +35,14 @@ impl Command {
             .arg("--set")
             .arg(format!(r#"title={title}{hash}"#))
             .output()
-            .context(eyre!("Cannot update the title for '{path}'"))?;
+            .map_err(|e| eyre!("Unable to update the title of '{path}' ({e})"))?;
 
         if cmd.status.success() {
             Ok(())
         } else {
-            Err(eyre!("Unable to rename '{}' for '{hash}'", title))
+            Err(eyre!(
+                "Unable to update the title of '{path}' (Unknown error)"
+            ))
         }
     }
 
@@ -52,7 +54,7 @@ impl Command {
             .arg("--identify")
             .arg(path)
             .output()
-            .context(eyre!("Cannot get file informations for '{path}'"))?;
+            .map_err(|e| eyre!("Unable to retrieve file information for '{path}' ({e})"))?;
         Ok(String::from_utf8_lossy(&output.stdout).to_string())
     }
 }
