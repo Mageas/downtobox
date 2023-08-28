@@ -11,7 +11,6 @@ pub struct File {
     pub path: String,
 }
 
-// TODO: add the non premium download link
 /// File informations
 impl File {
     pub async fn new(uptobox: &Uptobox, url: &str, dir: &str) -> Result<Self> {
@@ -29,13 +28,13 @@ impl File {
 
         // Get the file url
         let url = uptobox
-            .get_download_url(GetDownloadUrl::new(file_code))
+            .get_download_url(GetDownloadUrl::new(&file_code))
             .await
             .map_err(|e| eyre!("Unable to fetch the download link for '{url}' ({e})"))?;
         let url = match url {
             GetDownloadUrlResponse::Link(url) => url.dl_link,
             GetDownloadUrlResponse::Wait(_) => {
-                return Err(eyre!("A premium account is needed to use this software"))
+                return Err(eyre!("A premium account is needed to use this software"));
             }
         };
 
@@ -82,3 +81,64 @@ impl File {
         Ok(display)
     }
 }
+
+// ----
+// Code to use this software without premium
+// ----
+
+// use indicatif::{ProgressBar, ProgressState, ProgressStyle};
+
+// if wait.waiting <= 30 {
+//     // Waiting 35 seconds
+//     let pb = Self::set_progress_bar(wait.waiting as u64 + 5)?;
+//     for _ in 0..wait.waiting + 5 {
+//         std::thread::sleep(std::time::Duration::from_millis(1000));
+//         pb.set_position(pb.position() + 1);
+//     }
+
+//     // Get the file url
+//     let url = uptobox
+//         .get_download_url_waiting_token(
+//             file_code,
+//             wait.waiting_token.ok_or_else(|| {
+//                 eyre!("Unable to get the waiting token to download '{name}' (waiting token is empty)")
+//             })?,
+//         )
+//         .await
+//         .map_err(|e| {
+//             eyre!("Unable to get the waiting token to download '{name}' ({e})")
+//         })?;
+//     match url {
+//         GetDownloadUrlResponse::Link(url) => url.dl_link,
+//         GetDownloadUrlResponse::Wait(_) => {
+//             return Err(eyre!(
+//             "Unable to get the waiting token to download '{name}' (unknown error)"
+//         ))
+//         }
+//     }
+// } else {
+//     return Err(eyre!(
+//         "To download '{name}', you need to wait {} seconds",
+//         wait.waiting
+//     ));
+// }
+
+// /// Set the progress bar
+// fn set_progress_bar(time: u64) -> Result<ProgressBar> {
+//     let pb = ProgressBar::new(time);
+//     pb.set_style(
+//         ProgressStyle::with_template(
+//             "{msg}\n {spinner:.green} [{elapsed_precise}] [{wide_bar:.cyan/blue}] ({eta})",
+//         )
+//         .map_err(|e| eyre!("The progress bar cannot be initialized ({e})"))?
+//         .with_key(
+//             "eta",
+//             |state: &ProgressState, w: &mut dyn std::fmt::Write| {
+//                 write!(w, "{:.1}s", state.eta().as_secs_f64()).unwrap()
+//             },
+//         )
+//         .progress_chars("#>-"),
+//     );
+//     pb.set_message("Waiting to get the download link");
+//     Ok(pb)
+// }
