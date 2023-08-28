@@ -1135,7 +1135,7 @@ dependencies = [
 [[package]]
 name = "rs-uptobox"
 version = "0.1.0"
-source = "git+https://github.com/Mageas/rs-uptobox.git?branch=main#187b1a4aa78e4e5c50e19a013a5f117c44961c36"
+source = "git+https://github.com/Mageas/rs-uptobox.git?branch=main#a4aa016fbf0f1f4b27a7ecfd7caac0a637e52f90"
 dependencies = [
  "json-patch",
  "reqwest",

@@ -104,6 +104,9 @@ async fn backup_files(
     upload_type: &UploadType,
     link: &str,
 ) -> Result<()> {
+    // Only premium accounts can use this software
+    check_uptobox_account(uptobox).await?;
+
     // File informations
     let file: File = File::new(uptobox, link, &config.local_path).await?;
 
@@ -166,6 +169,9 @@ async fn upload_files(
     upload_type: &UploadType,
     path: &str,
 ) -> Result<()> {
+    // Only premium accounts can use downtobox
+    check_uptobox_account(uptobox).await?;
+
     let file_name = Path::new(path)
         .file_name()
         .ok_or_else(|| eyre!("Unable to extract file name"))?
@@ -216,12 +222,26 @@ async fn upload_files(
     Ok(())
 }
 
+/// Check if the file is a matroska
 fn check_file(name: &str) -> Result<()> {
     if !name.ends_with(".mkv") {
         Err(eyre!(
-            "Downtobox is only compatible with matroska (.mkv) files"
+            "This software is only compatible with matroska (.mkv) files"
         ))
     } else {
         Ok(())
+    }
+}
+
+/// Check if the uptobox account is premium
+async fn check_uptobox_account(uptobox: &UptoboxApi) -> Result<()> {
+    let uptobox_account = uptobox
+        .get_account()
+        .await
+        .map_err(|e| eyre!("Unable to retreive your uptobox account ({e})"))?;
+    if uptobox_account.premium {
+        Ok(())
+    } else {
+        Err(eyre!("A premium account is needed to use this software"))
     }
 }
