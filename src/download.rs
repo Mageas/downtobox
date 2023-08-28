@@ -20,12 +20,7 @@ impl Download {
             .content_length()
             .ok_or_else(|| eyre!("Failed to get content length from '{}'", &url))?;
 
-        let pb = ProgressBar::new(size);
-        pb.set_style(ProgressStyle::with_template("{msg}\n {spinner:.green} [{elapsed_precise}] [{wide_bar:.cyan/blue}] {bytes}/{total_bytes} ({eta}) {bytes_per_sec}")
-            .map_err(|e| eyre!("The progress bar cannot be initialized ({e})"))?
-            .with_key("eta", |state: &ProgressState, w: &mut dyn std::fmt::Write| write!(w, "{:.1}s", state.eta().as_secs_f64()).unwrap())
-            .progress_chars("#>-"));
-        pb.set_message(format!("Downloading {}", url));
+        let pb = Self::set_progress_bar(size, url)?;
 
         let mut file =
             File::create(path).map_err(|e| eyre!("Failed to create the file '{path}' ({e})"))?;
@@ -44,5 +39,16 @@ impl Download {
         pb.finish_with_message(format!("Downloaded {} to {}", url, path));
 
         Ok(())
+    }
+
+    /// Set the progress bar
+    fn set_progress_bar(size: u64, url: &str) -> Result<ProgressBar> {
+        let pb = ProgressBar::new(size);
+        pb.set_style(ProgressStyle::with_template("{msg}\n {spinner:.green} [{elapsed_precise}] [{wide_bar:.cyan/blue}] {bytes}/{total_bytes} ({eta}) {bytes_per_sec}")
+            .map_err(|e| eyre!("The progress bar cannot be initialized ({e})"))?
+            .with_key("eta", |state: &ProgressState, w: &mut dyn std::fmt::Write| write!(w, "{:.1}s", state.eta().as_secs_f64()).unwrap())
+            .progress_chars("#>-"));
+        pb.set_message(format!("Downloading {}", url));
+        Ok(pb)
     }
 }
